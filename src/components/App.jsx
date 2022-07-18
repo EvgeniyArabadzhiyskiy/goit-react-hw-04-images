@@ -1,8 +1,7 @@
 // import { useReducer } from 'react';
 import { useEffect } from 'react';
-import {  useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { Zoom } from 'react-toastify';
+import { useState } from 'react';
+import { ToastContainer, toast, Zoom } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import Box from './Box/Box';
@@ -12,114 +11,108 @@ import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import fetchImages from 'service/pixabay-api';
 import Notification from './Notification/Notification';
-
+import { useRef } from 'react';
 
 const App = () => {
-  const [page,setPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [articles, setArticles] = useState([]);
   const [totalHits, setTotalHits] = useState(false);
   const [error, setError] = useState(null);
   const [isloading, setIsloading] = useState(false);
 
-  const CARD_HEIGHT = 260;
-  
+  const galleryRef = useRef(null);
+
   useEffect(() => {
     if (query === '') {
-      return
+      return;
     }
 
     async function fetchGalleryImages() {
       try {
-        setIsloading(true)
+        setIsloading(true);
         const imageData = await fetchImages(query, page);
 
         setTotalHits(imageData.total);
 
         const imagesHits = imageData.hits;
-        
+
         if (imagesHits.length === 0) {
-          toast.warning("No results were found for your search, please try something else.",
-           {transition: Zoom, position: "top-center"})
-          return
+          toast.warning(
+            'No results were found for your search, please try something else.',
+            { transition: Zoom, position: 'top-center' }
+          );
+          return;
         }
 
-        setArticles(state => [...state, ...imagesHits ]);
-
+        setArticles(state => [...state, ...imagesHits]);
       } catch (error) {
         setError(new Error(`Sorry something went wrong. ${error.message}`));
 
-        toast.error(`Sorry something went wrong. ${error.message}`,{position: "top-right"});
+        toast.error(`Sorry something went wrong. ${error.message}`, {
+          position: 'top-right',
+        });
       } finally {
-        setIsloading(false)
-
+        setIsloading(false);
       }
     }
 
-    fetchGalleryImages()
-
-  },[query, page])
-
+    fetchGalleryImages();
+  }, [query, page]);
 
   useEffect(() => {
     if (page > 1) {
+      const clientRect =
+        galleryRef.current.firstElementChild.getBoundingClientRect();
+      const { height: cardGalleryHeight } = clientRect;
+
       window.scrollBy({
-        top: CARD_HEIGHT * 2,
-        behavior: 'smooth'
-      })
+        top: cardGalleryHeight * 2,
+        behavior: 'smooth',
+      });
     }
+  });
 
-  })
-
-  const handleFormSubmit = (query) => {
-    setQuery(query)
-    setPage(1)
-    setArticles([])
+  const handleFormSubmit = query => {
+    setQuery(query);
+    setPage(1);
+    setArticles([]);
   };
 
   const handleLoadMore = e => {
-    setPage(state => state + 1)
+    setPage(state => state + 1);
   };
 
-  const countImages = articles.length
+  const countImages = articles.length;
 
-    return (
-    <Box display="grid" gridAutoColumns="1fr" gridGap="16px" pb={6} >
-
-      <Searchbar  onSearhFormSubmit={handleFormSubmit} page={page} />
+  return (
+    <Box display="grid" gridAutoColumns="1fr" gridGap="16px" pb={6}>
+      <Searchbar onSearhFormSubmit={handleFormSubmit} page={page} />
 
       {isloading && <Loader />}
 
-      {error && <h1 style={{color: 'orangered', textAlign: 'center'}}>{error.message}</h1>}
-      
-      {countImages > 0 && <ImageGallery articlesHits={articles}   />}
+      {error && (
+        <h1 style={{ color: 'orangered', textAlign: 'center' }}>
+          {error.message}
+        </h1>
+      )}
 
-      {(countImages > 0 && countImages < totalHits) && <Button onLoadMore={handleLoadMore} />}
+      {countImages > 0 && (
+        <ImageGallery galleryRef={galleryRef} articlesHits={articles} />
+      )}
 
-      {countImages === totalHits && countImages > 0 && <Notification /> }
+      {countImages > 0 && countImages < totalHits && (
+        <Button onLoadMore={handleLoadMore} />
+      )}
 
-      <ToastContainer autoClose={3000}   theme="colored" pauseOnHover  />
+      {countImages === totalHits && countImages > 0 && <Notification />}
+
+      <ToastContainer autoClose={3000} theme="colored" pauseOnHover />
     </Box>
   );
-}
+};
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // function galleryReducer(state, {type, payload}) {
 
@@ -138,37 +131,36 @@ export default App;
 //       return {
 //         ...state,
 //         articles: [...state.articles, ...payload]
-//       } 
+//       }
 //      case 'setError':
 //       return {
 //         ...state,
-//         error: new Error(`Sorry something went wrong. ${payload.message}`) 
-//       }  
+//         error: new Error(`Sorry something went wrong. ${payload.message}`)
+//       }
 //      case 'addNextPage':
 //       return {
 //         ...state,
 //         page: state.page + payload
-//       } 
+//       }
 //      case 'serchQuery':
 //       return {
 //         ...state,
 //         query: payload
-//       } 
+//       }
 //      case 'resetPage':
 //         return {
 //           ...state,
 //           page: 1
-//         } 
+//         }
 //      case 'resetArticles':
 //         return {
 //           ...state,
 //           articles: []
-//         } 
+//         }
 //     default:
 //       return state;
 //   }
 // }
-
 
 // const useGalleryArticles = () => {
 
@@ -193,11 +185,11 @@ export default App;
 //     addNextPage: () => dispatch({type: 'addNextPage', payload: 1})
 //   }
 
-
 // }
 
+
 // const App = () => {
-  
+
 //   const {
 //     galleryState,
 //     setLoading,
@@ -209,9 +201,8 @@ export default App;
 //     resetArticles,
 //     addNextPage} = useGalleryArticles()
 
-//   const { page, query, articles,  isloading, error, totalHits } = galleryState 
+//   const { page, query, articles,  isloading, error, totalHits } = galleryState
 
-  
 //   useEffect(() => {
 //     if (query === '') {
 //       return
@@ -226,7 +217,7 @@ export default App;
 //         setTotalHits(imageData.total)
 
 //         const imagesHits = imageData.hits;
-        
+
 //         if (imagesHits.length === 0) {
 //           toast.warning("No results were found for your search, please try something else.",
 //            {transition: Zoom, position: "top-center"})
@@ -245,7 +236,7 @@ export default App;
 
 //     fetchGalleryImages()
 
-//   },[query, page, ])
+//   },[query, page])
 //   // [query, page, setLoading, setTotalHits,addArticles, setError]
 
 //   const handleFormSubmit = (query) => {
@@ -264,11 +255,11 @@ export default App;
 //     <Box display="grid" gridAutoColumns="1fr" gridGap="16px" pb={6} >
 
 //       <Searchbar  onSearhFormSubmit={handleFormSubmit} page={page} />
-      
+
 //       {isloading && <Loader />}
 
 //       {error && <h1 style={{color: 'orangered', textAlign: 'center'}}>{error.message}</h1>}
-      
+
 //       {countImages > 0 && <ImageGallery articlesHits={articles}   />}
 
 //       { (countImages > 0 && countImages < totalHits) && <Button onLoadMore={handleLoadMore} />}
@@ -301,68 +292,28 @@ export default App;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //  =====================================================================================
 // const [galleryState, dispatch] = useReducer(galleryReducer, {
-  //   page: 1,
-  //   query: '',
-  //   articles: [],
-  //   totalHits: null,
-  //   isloading: false,
-  //   error: null,
-  // })
+//   page: 1,
+//   query: '',
+//   articles: [],
+//   totalHits: null,
+//   isloading: false,
+//   error: null,
+// })
 
-   // dispatch({type: "setLoading"})
+// dispatch({type: "setLoading"})
 
-   // dispatch({type: 'setTotalHits', payload: imageData.total})
+// dispatch({type: 'setTotalHits', payload: imageData.total})
 
-   // dispatch({type: 'addArticles', payload: imagesHits})
+// dispatch({type: 'addArticles', payload: imagesHits})
 
-   // dispatch({type: 'setError', payload: error})
+// dispatch({type: 'setError', payload: error})
 
-    // dispatch({type: 'setLoading'})
+// dispatch({type: 'setLoading'})
 
-    // dispatch({type: 'serchQuery', payload: query})
-    // dispatch({type: 'resetPage', payload: 1})
-    // dispatch({type: 'resetArticles', payload: []})
+// dispatch({type: 'serchQuery', payload: query})
+// dispatch({type: 'resetPage', payload: 1})
+// dispatch({type: 'resetArticles', payload: []})
 
-      // dispatch({type: 'addNextPage', payload: 1})
+// dispatch({type: 'addNextPage', payload: 1})
