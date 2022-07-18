@@ -2,9 +2,10 @@ import PropTypes from 'prop-types';
 import ImageGalleryItem from 'components/ImageGalleryItem/ImageGalleryItem';
 import { StyledList } from './ImageGallery.styled';
 
-const ImageGallery = ({ articlesHits }) => {
+const ImageGallery = ({ articlesHits, galleryRef }) => {
+  
   return (
-    <StyledList>
+    <StyledList ref={galleryRef}>
       {articlesHits.map(({ id, tags, webformatURL, largeImageURL }) => {
         return (
           <ImageGalleryItem
